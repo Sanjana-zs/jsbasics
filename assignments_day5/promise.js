@@ -7,7 +7,7 @@ const callMe = (time, callback) => {
                 resolve(callback);
             }, time);
         } else {
-            reject("Error Occured"); s
+            reject("Error Occured");
         }
     });
 }
