@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { Todos } from './reqParams';
 
 export const readDataFile = () => {
     return new Promise((resolve, reject) => {
@@ -18,32 +19,31 @@ export const writeDataFile = (data: any) => {
     });
 }
 
-export async function deleteTodo(query: { todos: string }, fileData: string[]) {
-    const todo = query.todos;
+export async function deleteTodo(query: { id: string }, fileData: any) {
+    const id = query.id;
     try {
-        if (todo) {
-            fileData = fileData.filter((element: string) => element != todo);
+        if (id) {
+            fileData = fileData.filter((element: Todos) => element.id != id);
             await writeDataFile(fileData);
         } else {
-            console.log('Request Body is undefined');
+            console.log('Query is undefined');
         }
     } catch (error) {
         console.log('Error Occured\n', error);
     }
 }
 
-export async function editTodo(reqBody: { todos: string }, query: { edit: string }, fileData: string[]) {
-    const editTodo = query.edit;
-    const replaceTodo = reqBody.todos;
+export async function editTodo(query: { id: string, todo: string }, fileData: any) {
+    const { id, todo } = query;
     try {
-        if (editTodo && replaceTodo) {
-            const index = fileData.indexOf(editTodo);
-            if (index != -1) {
-                fileData[index] = replaceTodo;
-                await writeDataFile(fileData);
-            } else {
-                console.log("Todo is undefined");
-            }
+        if (id && todo) {
+            fileData = fileData.map((e: Todos) => {
+                if (e.id == id) {
+                    return { ...e, description: todo };
+                }
+                return e;
+            });
+            await writeDataFile(fileData);
         }
     } catch (error) {
         console.log('Error\n', error);
