@@ -1,20 +1,26 @@
 import { deleteTodo, readDataFile, writeDataFile, editTodo } from "./dataOperations";
-import { reqMethod, reqApiUrl } from "./reqParams";
+import { reqMethod, reqApiUrl, Todos } from "./reqParams";
 import url from 'url';
+
+const uid = (): string => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
 export async function handleGetRequest(req: any, res: any) {
     let data: any;
-    const reqBody: { todos: string } = req.body;
     const parseQuery = url.parse(req.url, true);
     const pathname: string | null = parseQuery.pathname;
     const query: any = parseQuery.query;
-    console.log(req.url);
 
     try {
         if (pathname == reqApiUrl.CREATE && req.method == reqMethod.POST) {
             data = await readDataFile();
+            const { title, description } = req.body;
+            const reqBody: Todos = {
+                id: uid(),
+                title,
+                description
+            };
             if (reqBody) {
-                data.push(reqBody.todos);
+                data.push(reqBody);
                 await writeDataFile(data);
                 // set statusCode and header
                 res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -32,8 +38,11 @@ export async function handleGetRequest(req: any, res: any) {
                 // display todos on screen
                 res.writeHead(200, { 'Content-Type': 'text/html' });
                 res.write('<ul>');
-                data.forEach((e: string) => {
-                    res.write(`<li>${e}</li>`);
+                data.forEach((e: Todos) => {
+                    res.write(`<li id=${e.id}>`);
+                    res.write(`<h1>${e.title}</h1>`);
+                    res.write(`<p>${e.description}</p>`);
+                    res.write(`</li>`);
                 });
                 res.end('</ul>');
             }
@@ -41,7 +50,7 @@ export async function handleGetRequest(req: any, res: any) {
 
         else if (pathname == reqApiUrl.UPDATE && req.method == reqMethod.PATCH) {
             data = await readDataFile();
-            await editTodo(reqBody, query, data);
+            await editTodo(query, data);
             res.end('Replaced Successfully');
         }
 
