@@ -12,11 +12,11 @@ http.createServer((req: any, res: any) => {
     switch (req.method) {
         case reqMethod.GET:
         case reqMethod.DELETE:
+        case reqMethod.PATCH:
             handleGetRequest(req, res);
             break;
 
         case reqMethod.POST:
-        case reqMethod.PATCH:
             makeResponse(req, res, handleGetRequest);
             break;
     }
