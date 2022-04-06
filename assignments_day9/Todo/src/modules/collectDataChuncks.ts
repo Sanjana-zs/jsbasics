@@ -1,8 +1,8 @@
-export async function makeResponse(req: any, res: any, callback: any) {
+export function collectDataChuncks(req:any,res:any,callback:any ){
     let body = '';
 
     // collect chunks of data
-    req.on('data', (data: any) => {
+    req.on('data', (data: string) => {
         body += data;
     });
 
