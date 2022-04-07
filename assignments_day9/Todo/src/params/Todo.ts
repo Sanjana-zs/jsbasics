@@ -1,9 +1,9 @@
-import { Status } from "./status";
+import { Status } from "./util";
 
-export interface Todo {
-    id?: string;
-    title?: string;
-    status?: Status;
-    createdAt?: Date;
-    updatedAt?: Date;
+export interface ITodo {
+    id: string;
+    title: string;
+    status: Status;
+    createdAt: Date;
+    updatedAt: Date;
 }
