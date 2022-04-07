@@ -1,7 +1,7 @@
-import { getAppropriateStatus } from "../../params/status";
-import { Status } from "../../params/status";
+import { getAppropriateStatus } from "../../params/util";
+import { Status } from "../../params/util";
 import { v4 as uuidv4 } from 'uuid';
-import { Todo } from "../../params/Todo";
+import { ITodo } from "../../params/Todo";
 import { readFile, writeFile } from "../ReadWriteFile";
 
 export const addTodo = async (req: any, res: any) => {
@@ -20,11 +20,12 @@ export const addTodo = async (req: any, res: any) => {
             }
         }
         // post the data into server
-        const reqBody: Todo = {
+        const reqBody: ITodo = {
             id: uuidv4(),
             title,
             status: status ? status : Status.INCOMPLETE,
-            createdAt: new Date()
+            createdAt: new Date(),
+            updatedAt: new Date()
         };
         // read and write file
         const fileData: any = await readFile();
@@ -37,6 +38,7 @@ export const addTodo = async (req: any, res: any) => {
             }
         ));
     } catch (error) {
+        res.statusCode = res.statusCode ? res.statusCode : 500; // unhandled exception
         res.end(error);
     }
 }

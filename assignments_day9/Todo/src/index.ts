@@ -1,6 +1,6 @@
 import http from 'http';
 import dotenv from 'dotenv';
-import { reqMethod } from './params/reqMethod';
+import { reqMethod } from './params/util';
 import { collectDataChuncks } from './modules/collectDataChuncks';
 import { addTodo } from './modules/methods/addTodo';
 import { getTodoWithId } from './modules/methods/getTodoWithId';
@@ -10,7 +10,6 @@ import { queryTodo } from './modules/methods/queryTodo';
 dotenv.config();
 
 const port = process.env.PORT || 3000;
-const hostname = '127.0.0.1';
 
 http.createServer((req, res) => {
     const reqUrl: string | undefined = req.url;
@@ -18,29 +17,25 @@ http.createServer((req, res) => {
     if (reqUrl?.match(/\/[todo]+\/([a-z]|[0-9]|[-])+/g) && req.method == reqMethod.GET) {
         // fetching todo w.r.t id
         getTodoWithId(req, res);
-    }
-    else if (reqUrl?.match(/\/[todo]+/g) && req.method == reqMethod.POST) {
+    } else if (reqUrl?.match(/\/[todo]+/g) && req.method == reqMethod.POST) {
         // add todos to file
         collectDataChuncks(req, res, addTodo);
-    }
-    else if (reqUrl?.match(/\/[todo]+\/([a-z]|[0-9]|[-])+/g) && req.method == reqMethod.PUT) {
+    } else if (reqUrl?.match(/\/[todo]+\/([a-z]|[0-9]|[-])+/g) && req.method == reqMethod.PUT) {
         // update Todos
         collectDataChuncks(req, res, updateTodo);
-    }
-    else if (reqUrl?.match(/\/[todo]+\/([a-z]|[0-9]|[-])+/g) && req.method == reqMethod.DELETE) {
+    } else if (reqUrl?.match(/\/[todo]+\/([a-z]|[0-9]|[-])+/g) && req.method == reqMethod.DELETE) {
         // delete Todo
         deleteTodo(req, res);
     }
     else if (reqUrl?.match(/\/[todo]+/) && req.method == reqMethod.GET) {
         // queries on Todo
         queryTodo(req, res);
-    }
-    else {
+    } else {
         // wrong page
         res.statusCode = 404; //not found;
         res.end("Page not found");
     }
 
 }).listen(port, () => {
-    console.log(`Server is running at http://${hostname}:${port}/`);
+    console.log(`Server is running at http://localhost:${port}/`);
 })

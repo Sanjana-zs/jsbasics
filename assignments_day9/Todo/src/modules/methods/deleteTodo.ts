@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "../ReadWriteFile";
-import { Todo } from "../../params/Todo";
+import { ITodo } from "../../params/Todo";
 
 export const deleteTodo = async (req: any, res: any) => {
     const reqUrl: string = req.url;
@@ -7,9 +7,10 @@ export const deleteTodo = async (req: any, res: any) => {
     try {
         const id = reqUrl.split('/')[2];
         let fileData: any = await readFile();
-        const todos: Todo[] = fileData.filter((e: Todo) => e.id != id);
+        const todos: ITodo[] = fileData.filter((e: ITodo) => e.id != id);
 
         if (todos.length == fileData.length) {
+            res.statusCode = 406;
             throw "ID is not present";
         } 
         
@@ -20,7 +21,7 @@ export const deleteTodo = async (req: any, res: any) => {
         }
         
     } catch (error) {
-        res.statusCode = 400; // bad request
+        res.statusCode = res.statusCode ? res.statusCode : 500;
         res.end(error);
     }
 }

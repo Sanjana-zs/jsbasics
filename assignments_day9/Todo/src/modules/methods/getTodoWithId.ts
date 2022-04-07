@@ -1,5 +1,5 @@
 import { readFile } from "../ReadWriteFile";
-import { Todo } from "../../params/Todo";
+import { ITodo } from "../../params/Todo";
 
 export const getTodoWithId = async (req: any, res: any) => {
     const reqUrl: string = req.url;
@@ -7,7 +7,7 @@ export const getTodoWithId = async (req: any, res: any) => {
     try {
         const id = reqUrl.split('/')[2];
         const fileData: any = await readFile();
-        const todo: Todo | undefined = fileData.filter((e: Todo) => e.id == id)[0];
+        const todo: ITodo | undefined = fileData.filter((e: ITodo) => e.id == id)[0];
 
         if (todo) {
             res.writeHead(200, { 'Content-Type': 'application/json' }); // request succeeded
@@ -15,11 +15,12 @@ export const getTodoWithId = async (req: any, res: any) => {
         } 
         
         else {
-            res.statusCode = 406; // not accepted
+            res.statusCode = 400; // bad request
             throw "ID is not defined";
         }
         
     } catch (error) {
+        res.statusCode = res.statusCode ? res.statusCode : 500; // unhandled exception
         res.end(error);
     }
 }

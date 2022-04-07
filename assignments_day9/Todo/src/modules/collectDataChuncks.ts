@@ -3,7 +3,7 @@ export function collectDataChuncks(req:any,res:any,callback:any ){
 
     // collect chunks of data
     req.on('data', (data: string) => {
-        body += data;
+        body += data.toString();
     });
 
     req.on('end', (_any: any) => {

@@ -1,32 +1,21 @@
 import { readFile, writeFile } from "../ReadWriteFile";
 import url from 'url';
-import { Todo } from "../../params/Todo";
+import { ITodo } from "../../params/Todo";
 
 export const queryTodo = async (req: any, res: any) => {
     const reqUrl: string = req.url;
 
     try {
-        const { query } = url.parse(reqUrl, true).query;
+        const { query='' } = url.parse(reqUrl, true).query;
         const title:string|undefined = Array.isArray(query) ? query[0] : query;
-        const fileData: Todo[] | any = await readFile();
+        const fileData: ITodo[] | any = await readFile();
 
-        if (title) {
-            const todos: Todo[] = fileData.filter((e: Todo) => e.title?.includes(title) );
-            if (!todos.length) {
-                res.statusCode = 200;
-                res.end("No Match found");
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json' }); // request succeeded
-            res.end(JSON.stringify(todos));
-        } 
-        
-        else {
-            res.writeHead(200, { 'Content-Type': 'application/json' }); // request succeeded
-            res.end(JSON.stringify(fileData));
-        }
+        const todos: ITodo[] = fileData.filter((e: ITodo) => e.title?.includes(title) );
+        res.writeHead(200, { 'Content-Type': 'application/json' }); // request succeeded
+        res.end(JSON.stringify(todos));
 
     } catch (error) {
-        res.statusCode = 400; //bad request
+        res.statusCode = res.statusCode ? res.statusCode : 500; // unhandled exception
         res.end(error);
     }
 }

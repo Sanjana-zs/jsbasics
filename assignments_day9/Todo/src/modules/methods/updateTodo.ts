@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "../ReadWriteFile";
-import { Todo } from "../../params/Todo";
-import { getAppropriateStatus } from "../../params/status";
+import { ITodo } from "../../params/Todo";
+import { getAppropriateStatus } from "../../params/util";
 
 export const updateTodo = async (req: any, res: any) => {
     const reqUrl: string = req.url;
@@ -8,7 +8,7 @@ export const updateTodo = async (req: any, res: any) => {
     try {
         const id = reqUrl.split('/')[2];
         let fileData: any = await readFile();
-        const todo: Todo | undefined = fileData.filter((e: Todo) => e.id == id)[0];
+        const todo: ITodo | undefined = fileData.filter((e: ITodo) => e.id == id)[0];
 
         if (todo) {
             let { title, status } = req.body;
@@ -16,7 +16,7 @@ export const updateTodo = async (req: any, res: any) => {
             todo.status = status ? getAppropriateStatus(status) : todo.status;
             todo.updatedAt = new Date();
             // update the json file
-            fileData = fileData.map((e: Todo) => {
+            fileData = fileData.map((e: ITodo) => {
                 if (e.id == todo.id) {
                     e.title = todo.title;
                     e.status = todo.status;
@@ -32,11 +32,12 @@ export const updateTodo = async (req: any, res: any) => {
         } 
 
         else {
+            res.statusCode = 406; // not acceptable
             throw "ID is not defined";
         }
 
     } catch (error) {
-        res.statusCode = 400; //bad request
+        res.statusCode = res.statusCode ? res.statusCode : 500; // unhandled exception
         res.end(error);
     }
 }
