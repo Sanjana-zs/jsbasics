@@ -4,10 +4,12 @@ import { getAppropriateStatus } from "../../params/status";
 
 export const updateTodo = async (req: any, res: any) => {
     const reqUrl: string = req.url;
+
     try {
         const id = reqUrl.split('/')[2];
         let fileData: any = await readFile();
         const todo: Todo | undefined = fileData.filter((e: Todo) => e.id == id)[0];
+
         if (todo) {
             let { title, status } = req.body;
             todo.title = title ? title : todo.title;
@@ -27,7 +29,12 @@ export const updateTodo = async (req: any, res: any) => {
             res.end(JSON.stringify(
                 { data: todo }
             ));
-        } else throw "ID is not defined";
+        } 
+
+        else {
+            throw "ID is not defined";
+        }
+
     } catch (error) {
         res.statusCode = 400; //bad request
         res.end(error);

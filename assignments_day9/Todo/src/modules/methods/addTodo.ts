@@ -8,10 +8,14 @@ export const addTodo = async (req: any, res: any) => {
     try {
         let { title, status } = req.body; // object destructuring
         // checking for validate title and status
-        if (!title) throw "Title is not defined";
+        if (!title){
+            res.statusCode = 406; // not acceptable
+            throw "Title is not defined";
+        }
         if (status) {
             status = getAppropriateStatus(status);
             if (status == Status.WRONG) {
+                res.statusCode = 406;
                 throw "Status is not valid";
             }
         }
@@ -28,10 +32,11 @@ export const addTodo = async (req: any, res: any) => {
         await writeFile(fileData);
         res.writeHead(201, { 'Content-Type': 'application/json' }); // 201 when a resource was created as result
         res.end(JSON.stringify(
-            { data: reqBody.id }
+            { data:
+                { id: reqBody.id }
+            }
         ));
     } catch (error) {
-        res.statusCode = 400; // bad request
         res.end(error);
     }
 }
