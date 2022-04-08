@@ -1,0 +1,23 @@
+{
+  "name": "todo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "nodemon dest/index.js"
+  },
+  "author": "Sanjana",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node": "^10.7.0"
+  },
+  "dependencies": {
+    "@types/node": "^17.0.23",
+    "@types/uuid": "^8.3.4",
+    "dotenv": "^16.0.0",
+    "nodemon": "^2.0.15",
+    "uuid": "^8.3.2"
+  }
+}
