@@ -1,0 +1,33 @@
+{
+  "name": "dummy_insta",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dest/index.js",
+    "script": "npx ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "author": "Sanjana",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.8",
+    "@types/koa": "^2.13.4",
+    "@types/koa-bodyparser": "^4.3.7",
+    "@types/koa-json": "^2.0.20",
+    "@types/koa-router": "^7.4.4",
+    "@types/uuid": "^8.3.4",
+    "ts-node": "^10.7.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "joi": "^17.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "koa-json": "^2.0.2",
+    "koa-router": "^10.1.1",
+    "uuid": "^8.3.2"
+  }
+}
