@@ -4,12 +4,10 @@ import { AuthError, NotFoundError } from "../Error/error";
 import jsonWebToken from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
-const getById = (userId: string): IUser => {
-    const userInfo: IUser | undefined = userData.find((e: IUser) => e.id === userId);
-    if (!userInfo) {
-        throw new AuthError("User doesn't exist");
-    }
-    return userInfo;
+const createToken = (id: string): string => {
+    const secret = process.env.SECRET_KEY || 'secret_key';
+    const token = jsonWebToken.sign({ userId: id }, secret);
+    return token;
 }
 
 const createUser = (body: IUser): string => {
@@ -20,6 +18,31 @@ const createUser = (body: IUser): string => {
     }
     userData.push(newUser);
     return newUser.id;
+}
+
+const deleteRespectiveUser = (userId: string): IUser[] => {
+    const index = userData.findIndex((e: IUser) => e.id === userId);
+    if (index === -1) {
+        throw new NotFoundError("User doesn't exist");
+    }
+    userData.splice(index, 1);
+    return userData;
+}
+
+const getById = (userId: string): IUser => {
+    const userInfo: IUser | undefined = userData.find((e: IUser) => e.id === userId);
+    if (!userInfo) {
+        throw new AuthError("User doesn't exist");
+    }
+    return userInfo;
+}
+
+const getUserInfo = (query: string[] | string): IUser[] => {
+    // do efficient coding
+    const userInfo: IUser[] = userData.filter((e: IUser) => {
+        return query.includes(e.id);
+    });
+    return userInfo;
 }
 
 const updateUser = (body: IUser, userId: string): void => {
@@ -39,15 +62,6 @@ const updateUser = (body: IUser, userId: string): void => {
     }
 }
 
-const deleteRespectiveUser = (userId: string): IUser[] => {
-    const index = userData.findIndex((e: IUser) => e.id === userId);
-    if (index === -1) {
-        throw new NotFoundError("User doesn't exist");
-    }
-    userData.splice(index, 1);
-    return userData;
-}
-
 const handleUserQuery = (query: string | string[]): IUser[] => {
     const userName = Array.isArray(query) ? query[0] : query;
     const filteredData: IUser[] = userData.filter((e: IUser) => e.userName.includes(userName));
@@ -64,10 +78,4 @@ const makeLogin = (body: { email: string, password: string }): string => {
     return createToken(id);
 }
 
-const createToken = (id: string): string => {
-    const secret = process.env.SECRET_KEY || 'secret_key';
-    const token = jsonWebToken.sign({ userId: id }, secret);
-    return token;
-}
-
-export { getById, deleteRespectiveUser, createUser, handleUserQuery, makeLogin, updateUser };
+export { getById, deleteRespectiveUser, createUser, handleUserQuery, makeLogin, updateUser, getUserInfo };

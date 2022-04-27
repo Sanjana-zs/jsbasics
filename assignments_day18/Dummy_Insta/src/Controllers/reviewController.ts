@@ -5,7 +5,8 @@ import { createReview, deleteRespectiveReview, fetchBookReviews, updateRespectiv
 const getBookReviews = (ctx: Context): void => {
     try {
         const { bookId } = ctx.params;
-        const reviews = fetchBookReviews(bookId);
+        const { query = '' } = ctx.request.query;
+        const reviews = fetchBookReviews(bookId, query);
         ctx.status = 200; // success
         ctx.body = { data: reviews };
     } catch (error: any) {
