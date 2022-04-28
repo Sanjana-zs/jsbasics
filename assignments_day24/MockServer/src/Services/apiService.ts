@@ -1,15 +1,9 @@
 import axios from "axios";
-import data from "../constants/data";
 import { IFetchReview, IReview, IUser, IBook, IFeed } from "../constants/interface";
 import { AxiosError } from "../Error/error";
 
-const getAllBooks = async (token: string): Promise<IBook[]> => {
-    const Headers = {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    };
-    const promise = axios.get('http://localhost:3000/book', Headers);
+const getBooks = async (Headers: {}, limit: string): Promise<IBook[]> => {
+    const promise = axios.get(`http://localhost:3000/book/list?limit=${limit}`, { headers: Headers });
     const result = promise.then(response => response.data.data).catch(error => {
         const { status, statusText } = error.response;
         throw new AxiosError(statusText, status);
@@ -17,61 +11,101 @@ const getAllBooks = async (token: string): Promise<IBook[]> => {
     return result;
 }
 
-const pushBookToData = async (token: string, books: IBook[]) => {
-    await Promise.all(books.map(async e => {
-        let obj: IFeed;
-        const userInfo: IUser = await getUserInfo(token, e.authId);
-        const bookReviews: IFetchReview[] = await getAllBookReviews(token, e.id);
-        const reviews: IReview[] = await mapReviewerInfo(token, bookReviews);
-        obj = {
-            userInfo,
-            bookInfo: e,
-            reviews: reviews
-        }
-        data.push(obj);
-    }));
+const getAllUsers = (bookData: IBook[], reviews: IFetchReview[][]): string[] => {
+    const bookUsers: string[] = getUniqueUsers(bookData);
+    const reviewUser: string[] = [];
+    reviews.forEach((e: IFetchReview[]) => {
+        const users = getUniqueUsers(e);
+        reviewUser.concat(users);
+    });
+    const allUsers = bookUsers.concat(reviewUser);
+    const uniqueUsers = new Set(allUsers);
+    return Array.from(uniqueUsers);
 }
 
-const getAllBookReviews = async (token: string, bookId: string): Promise<IFetchReview[]> => {
-    const Headers = {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    };
-    return axios.get(`http://localhost:3000/review/books/${bookId}`, Headers)
-        .then(response => response.data.data).catch(error => {
-            const { status, statusText } = error.response;
-            throw new AxiosError(statusText, status);
-        });
+const getUniqueUsers = (data: IBook[] | IFetchReview[]): string[] => {
+    const users: string[] = data.map(e => e.authId);
+    const uniqueUsers: Set<string> = new Set(users);
+    return Array.from(uniqueUsers);
 }
 
-const mapReviewerInfo = async (token: string, reviews: IFetchReview[]): Promise<IReview[]> => {
-    const mappedReviews: IReview[] = await Promise.all(reviews.map(async e => {
-        let obj: IReview;
-        const reviewerInfo: IUser = await getUserInfo(token, e.authId);
-        obj = {
+const getUserInfo = async (Headers: {}, users: string[]): Promise<IUser[]> => {
+    return axios({
+        method: "post",
+        url: "http://localhost:3000/user/list",
+        headers: Headers,
+        data: {
+            id: users
+        }
+    }).then(response => response.data.data).catch(error => {
+        const { status, statusText } = error.response;
+        throw new AxiosError(statusText, status);
+    });
+}
+
+const getBookReviews = async (Headers: {}, bookData: IBook[]): Promise<IFetchReview[][]> => {
+    const bookIds: string[] = bookData.map((e: IBook) => e.id);
+    return axios({
+        method: "post",
+        url: "http://localhost:3000/review/books/list",
+        headers: Headers,
+        data: {
+            id: bookIds,
+            limit: 2
+        }
+    }).then(response => response.data.data).catch(error => {
+        const { status, statusText } = error.response;
+        throw new AxiosError(statusText, status);
+    });;
+}
+
+const filterUser = (data: IUser[], userId: string): IUser => {
+    const index = data.findIndex((e: IUser) => e.id === userId);
+    if (index == -1) throw new AxiosError("User doesn't exist", 401);
+    return data[index];
+}
+
+const filterBookReviews = (reviews: IFetchReview[][], bookId: string): IFetchReview[] => {
+    let filteredReview: IFetchReview[] = [];
+    for (const review of reviews) {
+        if (review.length && review[0].bookId === bookId) {
+            filteredReview = filteredReview.concat(review);
+            break;
+        }
+    }
+    return filteredReview;
+}
+
+const filterReviewerInfo = (review: IFetchReview[], userData: IUser[]): IReview[] => {
+    const formattedReview: IReview[] = review.map((e: IFetchReview) => {
+        const reviewerInfo: IUser = filterUser(userData, e.authId);
+        let obj: IReview = {
             id: e.id,
             review: e.review,
             bookId: e.bookId,
             createdAt: e.createdAt,
             reviewerInfo
-        };
-        return obj;
-    }));
-    return mappedReviews;
-}
-
-const getUserInfo = async (token: string, userId: string): Promise<IUser> => {
-    const Headers = {
-        headers: {
-            Authorization: `Bearer ${token}`
         }
-    };
-    return axios.get(`http://localhost:3000/user/info/${userId}`, Headers)
-        .then(response => response.data).catch(error => {
-            const { status, statusText } = error.response;
-            throw new AxiosError(statusText, status);
-        });;
+        return obj;
+    })
+    return formattedReview;
 }
 
-export { getAllBooks, pushBookToData };
+const mapDataIntoFeed = (books: IBook[], reviewData: IFetchReview[][], users: IUser[]): IFeed[] => {
+    let feeds: IFeed[] = [];
+    books.forEach((e: IBook) => {
+        let obj: IFeed;
+        const userInfo: IUser = filterUser(users, e.authId);
+        const review: IFetchReview[] = filterBookReviews(reviewData, e.id);
+        const reviews: IReview[] = filterReviewerInfo(review, users);
+        obj = {
+            userInfo,
+            bookInfo: e,
+            reviews
+        }
+        feeds.push(obj);
+    })
+    return feeds;
+}
+
+export { getBooks, getUniqueUsers, getUserInfo, getBookReviews, getAllUsers, mapDataIntoFeed };

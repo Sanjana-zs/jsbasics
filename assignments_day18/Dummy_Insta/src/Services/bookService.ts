@@ -3,6 +3,28 @@ import { IBook, IUser } from "../Constants/interface";
 import { AuthError, NotFoundError } from "../Error/error";
 import { v4 as uuidv4 } from 'uuid';
 
+const createBook = (body: IBook, userId: string): string => {
+    const { title, description } = body;
+    const newBook: IBook = {
+        id: uuidv4(),
+        title,
+        authId: userId,
+        releaseDate: new Date(),
+        description: description || ''
+    }
+    bookData.push(newBook);
+    return newBook.id;
+}
+
+const deleteRespectiveBook = (bookId: string, userId: string): IBook[] => {
+    const index = bookData.findIndex((e: IBook) => e.id === bookId && e.authId === userId);
+    if (index === -1) {
+        throw new NotFoundError("Book doesn't exist");
+    }
+    bookData.splice(index, 1);
+    return bookData;
+}
+
 const fetchBookById = (bookId: string): IBook | NotFoundError => {
     const bookInfo: IBook | undefined = bookData.find((e: IBook) => e.id === bookId);
     if (!bookInfo) {
@@ -26,19 +48,6 @@ const handleBookQuery = (query: string | string[]): IBook[] => {
     return filteredData;
 }
 
-const createBook = (body: IBook, userId: string): string => {
-    const { title, description } = body;
-    const newBook: IBook = {
-        id: uuidv4(),
-        title,
-        authId: userId,
-        releaseDate: new Date(),
-        description: description || ''
-    }
-    bookData.push(newBook);
-    return newBook.id;
-}
-
 const updateRespectiveBook = (body: IBook, bookId: string, userId: string): void => {
     const { title, description } = body;
     const index = bookData.findIndex((e: IBook) => e.id === bookId);
@@ -54,13 +63,15 @@ const updateRespectiveBook = (body: IBook, bookId: string, userId: string): void
     }
 }
 
-const deleteRespectiveBook = (bookId: string, userId: string): IBook[] => {
-    const index = bookData.findIndex((e: IBook) => e.id === bookId && e.authId === userId);
-    if (index === -1) {
-        throw new NotFoundError("Book doesn't exist");
+const fetchBooks = (limit: number): IBook[] => {
+    let count: number = 0;
+    const filteredBooks: IBook[] = [];
+    for (const book of bookData) {
+        if (count === limit) break;
+        filteredBooks.push(book);
+        count++;
     }
-    bookData.splice(index, 1);
-    return bookData;
+    return filteredBooks;
 }
 
-export { fetchBookById, deleteRespectiveBook, updateRespectiveBook, createBook, getRespectiveBooksByAuth, handleBookQuery };
+export { fetchBookById, deleteRespectiveBook, updateRespectiveBook, createBook, getRespectiveBooksByAuth, handleBookQuery, fetchBooks };

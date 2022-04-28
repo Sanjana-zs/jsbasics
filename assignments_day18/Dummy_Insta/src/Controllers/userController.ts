@@ -18,8 +18,8 @@ const deleteUser = (ctx: Context): void => {
 
 const fetchAllUsers = (ctx: Context): void => {
     try {
-        const { query = [] } = ctx.request.query;
-        const userInfo = getUserInfo(query);
+        const { id } = ctx.request.body;
+        const userInfo = getUserInfo(id);
         ctx.status = 200;
         ctx.body = { data: userInfo }
     } catch (err: any) {

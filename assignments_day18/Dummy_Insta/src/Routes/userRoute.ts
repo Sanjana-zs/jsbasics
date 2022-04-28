@@ -8,13 +8,14 @@ const userRouter = new Router();
 userRouter.prefix('/user');
 
 // userRouter.get('/info/:id', tokenHandler, fetchUserInfo);
-userRouter.get('/info', fetchAllUsers);
 
 userRouter.get('/id', tokenHandler, getUserById);
 
 userRouter.get('/', tokenHandler, handleQuery);
 
 userRouter.post('/', bodyParser(), postUser);
+
+userRouter.post('/list', bodyParser(), tokenHandler, fetchAllUsers);
 
 userRouter.put('/', bodyParser(), tokenHandler, update);
 

@@ -1,7 +1,7 @@
 import joi from 'joi';
 import { bookData, userData } from '../Constants/data';
 import { IBook, IReview, IUser } from '../Constants/interface';
-import { AuthError, MandatoryError, NotFoundError } from '../Error/error';
+import { AuthError, ForbiddenError, MandatoryError, NotFoundError } from '../Error/error';
 
 const reviewValidation = (body: IReview, userId: string): void => {
     const joiReviewObject = joi.object({
@@ -21,6 +21,10 @@ const reviewValidation = (body: IReview, userId: string): void => {
     const book: IBook | undefined = bookData.find((e: IBook) => e.id === body.bookId);
     if (!book) {
         throw new NotFoundError("Book doesn't exist");
+    }
+
+    if (book.authId === body.authId) {
+        throw new ForbiddenError("Not Allowed");
     }
 }
 

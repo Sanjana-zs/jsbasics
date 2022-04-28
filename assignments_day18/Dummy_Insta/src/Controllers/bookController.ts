@@ -1,6 +1,31 @@
 import { Context } from "koa";
 import { bookValidation } from "../Validations/bookValidation";
-import { createBook, deleteRespectiveBook, getRespectiveBooksByAuth, fetchBookById, handleBookQuery, updateRespectiveBook } from "../Services/bookService";
+import { createBook, deleteRespectiveBook, getRespectiveBooksByAuth, fetchBookById, handleBookQuery, updateRespectiveBook, fetchBooks } from "../Services/bookService";
+
+const deleteBook = (ctx: Context): void => {
+    try {
+        const { id } = ctx.params;
+        const { userId } = ctx.state.userPayload;
+        const data = deleteRespectiveBook(id, userId);
+        ctx.status = 200; // success
+        ctx.body = { data };
+    } catch (err: any) {
+        ctx.status = err.errCode || 500;
+        ctx.body = { error: err.message };
+    }
+}
+
+const getBooksByAuthId = (ctx: Context): void => {
+    try {
+        const { userId } = ctx.state.userPayload;
+        const books = getRespectiveBooksByAuth(userId);
+        ctx.status = 200; // success;
+        ctx.body = { data: books };
+    } catch (err: any) {
+        ctx.status = err.errCode || 500;
+        ctx.body = { error: err.message };
+    }
+}
 
 const getBookById = (ctx: Context): void => {
     try {
@@ -26,18 +51,6 @@ const handleQuery = (ctx: Context): void => {
     }
 }
 
-const getBooksByAuthId = (ctx: Context): void => {
-    try {
-        const { userId } = ctx.state.userPayload;
-        const books = getRespectiveBooksByAuth(userId);
-        ctx.status = 200; // success;
-        ctx.body = { data: books };
-    } catch (err: any) {
-        ctx.status = err.errCode || 500;
-        ctx.body = { error: err.message };
-    }
-}
-
 const postBook = (ctx: Context): void => {
     try {
         const { userId } = ctx.state.userPayload;
@@ -49,6 +62,19 @@ const postBook = (ctx: Context): void => {
     } catch (err: any) {
         ctx.status = err.errCode || 500;
         ctx.body = { error: err.message };
+    }
+}
+
+const showBooks = (ctx: Context): void => {
+    try {
+        const { limit = "10" } = ctx.request.query;
+        const booksCt = Array.isArray(limit) ? parseInt(limit[0]) : parseInt(limit);
+        const bookData = fetchBooks(booksCt);
+        ctx.status = 200;
+        ctx.body = { data: bookData };
+    } catch (error: any) {
+        ctx.status = error.errCode || 500;
+        ctx.body = { error: error.message };
     }
 }
 
@@ -67,17 +93,4 @@ const updateBook = (ctx: Context): void => {
     }
 }
 
-const deleteBook = (ctx: Context): void => {
-    try {
-        const { id } = ctx.params;
-        const { userId } = ctx.state.userPayload;
-        const data = deleteRespectiveBook(id, userId);
-        ctx.status = 200; // success
-        ctx.body = { data };
-    } catch (err: any) {
-        ctx.status = err.errCode || 500;
-        ctx.body = { error: err.message };
-    }
-}
-
-export { getBookById, handleQuery, postBook, updateBook, deleteBook, getBooksByAuthId };
+export { getBookById, handleQuery, postBook, updateBook, deleteBook, getBooksByAuthId, showBooks };

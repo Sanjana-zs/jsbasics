@@ -1,12 +1,11 @@
 import { Context } from "koa";
 import { reviewValidation } from "../Validations/reviewValidaion";
-import { createReview, deleteRespectiveReview, fetchBookReviews, updateRespectivereview } from "../Services/reviewService";
+import { createReview, deleteRespectiveReview, fetchBookReviews, updateRespectivereview, fetchAllReviews } from "../Services/reviewService";
 
 const getBookReviews = (ctx: Context): void => {
     try {
         const { bookId } = ctx.params;
-        const { query = '' } = ctx.request.query;
-        const reviews = fetchBookReviews(bookId, query);
+        const reviews = fetchBookReviews(bookId);
         ctx.status = 200; // success
         ctx.body = { data: reviews };
     } catch (error: any) {
@@ -57,4 +56,16 @@ const deleteReview = (ctx: Context): void => {
     }
 }
 
-export { postReview, deleteReview, updateReview, getBookReviews };
+const fetchReviews = (ctx: Context) => {
+    try {
+        const { id, limit } = ctx.request.body;
+        const reviews = fetchAllReviews(id, parseInt(limit));
+        ctx.status = 200;
+        ctx.body = { data: reviews }
+    } catch (error: any) {
+        ctx.status = error.errCode || 500;
+        ctx.body = { error: error.message };
+    }
+}
+
+export { postReview, deleteReview, updateReview, getBookReviews, fetchReviews };

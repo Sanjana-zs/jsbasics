@@ -2,7 +2,6 @@ import { bookData, reviewData, userData } from "../Constants/data";
 import { IBook, IReview } from "../Constants/interface";
 import { NotFoundError } from "../Error/error";
 import { v4 as uuidv4 } from 'uuid';
-import { number } from "joi";
 
 const createReview = (body: IReview, userId: string): string => {
     const { bookId, review } = body;
@@ -25,23 +24,27 @@ const deleteRespectiveReview = (reviewId: string, userId: string): IReview[] => 
     return reviewData;
 }
 
-const fetchBookReviews = (bookId: string, query: string | string[]): IReview[] | NotFoundError => {
+const fetchBookReviews = (bookId: string): IReview[] | NotFoundError => {
     const bookIndex = bookData.findIndex((e: IBook) => e.id === bookId);
-    const count = Array.isArray(query) ? query[0] : query;
     if (bookIndex === -1) {
         throw new NotFoundError("Book doesn't exist");
     }
-    let review: IReview[] = [];
-    let ct = 0;
-    // reviewData.filter((e: IReview) => e.bookId === bookId);
-    for (const element of reviewData) {
-        if (ct == parseInt(count)) break;
-        if (element.bookId === bookId) {
-            review.push(element);
-            ct++;
-        }
-    }
+    let review: IReview[] = reviewData.filter((e: IReview) => e.bookId === bookId);
     return review;
+}
+
+const fetchAllReviews = (bookId: string[], limit: number): IReview[] => {
+    const mappedReviews = new Map();
+    bookId.forEach(element => mappedReviews.set(element, []));
+    reviewData.forEach((e: IReview) => {
+        if (mappedReviews.get(e.bookId) && mappedReviews.get(e.bookId).length < limit) {
+            const review = mappedReviews.get(e.bookId);
+            review.push(e);
+            mappedReviews.set(e.bookId, review);
+        }
+    });
+    const array = Array.from(mappedReviews.values());
+    return array;
 }
 
 const updateRespectivereview = (reviewId: string, body: IReview, userId: string): void => {
@@ -58,4 +61,4 @@ const updateRespectivereview = (reviewId: string, body: IReview, userId: string)
     }
 }
 
-export { fetchBookReviews, createReview, updateRespectivereview, deleteRespectiveReview };
+export { fetchBookReviews, createReview, updateRespectivereview, deleteRespectiveReview, fetchAllReviews };

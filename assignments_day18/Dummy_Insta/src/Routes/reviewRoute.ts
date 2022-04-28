@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import bodyParser from 'koa-bodyparser';
-import { deleteReview, getBookReviews, postReview, updateReview } from "../Controllers/reviewController";
+import { deleteReview, getBookReviews, postReview, updateReview, fetchReviews } from "../Controllers/reviewController";
 import { tokenHandler } from "../Middleware/token";
 
 const reviewRouter = new Router();
@@ -8,6 +8,8 @@ const reviewRouter = new Router();
 reviewRouter.prefix('/review');
 
 reviewRouter.get('/books/:bookId', tokenHandler, getBookReviews);
+
+reviewRouter.post('/books/list', bodyParser(), tokenHandler, fetchReviews);
 
 reviewRouter.post('/', bodyParser(), tokenHandler, postReview);
 

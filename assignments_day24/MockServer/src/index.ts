@@ -1,7 +1,8 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import dotenv from 'dotenv';
-import { showBooks } from './Controller/apiController';
+import { showFeeds } from './Controller/apiController';
+import { fetchToken } from './middleware/token';
 dotenv.config();
 
 const app = new Koa();
@@ -9,7 +10,9 @@ const router = new Router();
 const port = process.env.PORT || 3001;
 router.prefix('/feeds');
 
-router.get('/book', showBooks);
+app.use(fetchToken);
+
+router.get('/', showFeeds);
 
 app.use(router.routes()).use(router.allowedMethods());
 
