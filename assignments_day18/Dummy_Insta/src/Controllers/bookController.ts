@@ -1,6 +1,6 @@
 import { Context } from "koa";
 import { bookValidation } from "../Validations/bookValidation";
-import { createBook, deleteRespectiveBook, getRespectiveBooksByAuth, fetchBookById, handleBookQuery, updateRespectiveBook, fetchBooks } from "../Services/bookService";
+import { createBook, deleteRespectiveBook, getRespectiveBooksByAuth, fetchBookById, handleBookQuery, updateRespectiveBook, fetchBooks, getRespectivePageBooks } from "../Services/bookService";
 
 const deleteBook = (ctx: Context): void => {
     try {
@@ -78,6 +78,20 @@ const showBooks = (ctx: Context): void => {
     }
 }
 
+const showPages = (ctx:Context): void => {
+    try {
+        const { page = "1", limit = "1" } = ctx.request.query;
+        const pageNo = Array.isArray(page) ? parseInt(page[0]): parseInt(page);
+        const delim = Array.isArray(limit) ? parseInt(limit[0]): parseInt(limit);
+        const books = getRespectivePageBooks(pageNo,delim);
+        ctx.status = 200;
+        ctx.body = { data: books }
+    } catch (error:any) {
+        ctx.status = error.errCode || 500;
+        ctx.body = { error: error.message };
+    }
+}
+
 const updateBook = (ctx: Context): void => {
     try {
         const { userId } = ctx.state.userPayload;
@@ -93,4 +107,4 @@ const updateBook = (ctx: Context): void => {
     }
 }
 
-export { getBookById, handleQuery, postBook, updateBook, deleteBook, getBooksByAuthId, showBooks };
+export { getBookById, handleQuery, postBook, updateBook, deleteBook, getBooksByAuthId, showBooks, showPages };

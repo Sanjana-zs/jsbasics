@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import bodyParser from 'koa-bodyparser';
-import { getBookById, postBook, updateBook, handleQuery, deleteBook, getBooksByAuthId, showBooks } from "../Controllers/bookController";
+import { getBookById, postBook, updateBook, handleQuery, deleteBook, getBooksByAuthId, showBooks, showPages } from "../Controllers/bookController";
 import { tokenHandler } from "../Middleware/token";
 
 const bookRouter = new Router();
@@ -8,6 +8,8 @@ const bookRouter = new Router();
 bookRouter.prefix('/book');
 
 bookRouter.get('/list', tokenHandler, showBooks);
+
+// bookRouter.get('/paginate/list', tokenHandler, showPages);
 
 bookRouter.get('/', tokenHandler, handleQuery);
 

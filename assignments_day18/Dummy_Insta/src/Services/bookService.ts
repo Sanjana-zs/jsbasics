@@ -17,9 +17,12 @@ const createBook = (body: IBook, userId: string): string => {
 }
 
 const deleteRespectiveBook = (bookId: string, userId: string): IBook[] => {
-    const index = bookData.findIndex((e: IBook) => e.id === bookId && e.authId === userId);
+    const index = bookData.findIndex((e: IBook) => e.id === bookId);
     if (index === -1) {
         throw new NotFoundError("Book doesn't exist");
+    }
+    if( bookData[index].authId !== userId ) {
+        throw new AuthError("Unauthorized");
     }
     bookData.splice(index, 1);
     return bookData;
@@ -40,6 +43,18 @@ const getRespectiveBooksByAuth = (userId: string): IBook[] | AuthError => {
     }
     const books: IBook[] = bookData.filter((e: IBook) => e.authId === userId);
     return books;
+}
+
+const getRespectivePageBooks = (offset: number, delimiter: number): IBook[] => {
+    const firstIndex = delimiter * (offset-1);
+    const lastIndex = firstIndex + delimiter - 1;
+    if (firstIndex >= bookData.length) {
+        throw new NotFoundError("Invalid Page");
+    }
+    if (lastIndex < bookData.length) {
+        return bookData.slice(firstIndex, lastIndex + 1);
+    }
+    return bookData.slice(firstIndex);
 }
 
 const handleBookQuery = (query: string | string[]): IBook[] => {
@@ -74,4 +89,4 @@ const fetchBooks = (limit: number): IBook[] => {
     return filteredBooks;
 }
 
-export { fetchBookById, deleteRespectiveBook, updateRespectiveBook, createBook, getRespectiveBooksByAuth, handleBookQuery, fetchBooks };
+export { fetchBookById, deleteRespectiveBook, updateRespectiveBook, createBook, getRespectiveBooksByAuth, handleBookQuery, fetchBooks, getRespectivePageBooks };

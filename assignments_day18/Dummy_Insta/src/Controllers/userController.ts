@@ -71,6 +71,7 @@ const postUser = (ctx: Context): void => {
         userValidation(body);
         const id = createUser(body);
         ctx.status = 201; // new resource is created
+        ctx.type = "application/json";
         ctx.body = { data: { id } };
     } catch (err: any) {
         ctx.status = err.errCode || 500;

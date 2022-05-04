@@ -1,3 +1,4 @@
+import { types } from "@babel/core";
 import axios from "axios";
 import { IFetchReview, IReview, IUser, IBook, IFeed } from "../constants/interface";
 import { AxiosError } from "../Error/error";
@@ -11,11 +12,12 @@ const getBooks = async (Headers: {}, limit: string): Promise<IBook[]> => {
     return result;
 }
 
-const getAllUsers = (bookData: IBook[], reviews: IFetchReview[][]): string[] => {
+const getAllUsers = (bookData: IBook[], reviews: Record<string,IFetchReview[]>): string[] => {
     const bookUsers: string[] = getUniqueUsers(bookData);
     const reviewUser: string[] = [];
-    reviews.forEach((e: IFetchReview[]) => {
-        const users = getUniqueUsers(e);
+    const someKey:string = "Key";
+    Object.values(reviews).forEach((review: IFetchReview[]) => {
+        const users = getUniqueUsers(review);
         reviewUser.concat(users);
     });
     const allUsers = bookUsers.concat(reviewUser);
@@ -43,7 +45,7 @@ const getUserInfo = async (Headers: {}, users: string[]): Promise<IUser[]> => {
     });
 }
 
-const getBookReviews = async (Headers: {}, bookData: IBook[]): Promise<IFetchReview[][]> => {
+const getBookReviews = async (Headers: {}, bookData: IBook[]): Promise<Record<string,IFetchReview[]>> => {
     const bookIds: string[] = bookData.map((e: IBook) => e.id);
     return axios({
         method: "post",
@@ -59,51 +61,27 @@ const getBookReviews = async (Headers: {}, bookData: IBook[]): Promise<IFetchRev
     });;
 }
 
-const filterUser = (data: IUser[], userId: string): IUser => {
-    const index = data.findIndex((e: IUser) => e.id === userId);
-    if (index == -1) throw new AxiosError("User doesn't exist", 401);
-    return data[index];
-}
-
-const filterBookReviews = (reviews: IFetchReview[][], bookId: string): IFetchReview[] => {
-    let filteredReview: IFetchReview[] = [];
-    for (const review of reviews) {
-        if (review.length && review[0].bookId === bookId) {
-            filteredReview = filteredReview.concat(review);
-            break;
-        }
-    }
-    return filteredReview;
-}
-
-const filterReviewerInfo = (review: IFetchReview[], userData: IUser[]): IReview[] => {
-    const formattedReview: IReview[] = review.map((e: IFetchReview) => {
-        const reviewerInfo: IUser = filterUser(userData, e.authId);
-        let obj: IReview = {
-            id: e.id,
-            review: e.review,
-            bookId: e.bookId,
-            createdAt: e.createdAt,
-            reviewerInfo
-        }
-        return obj;
-    })
-    return formattedReview;
-}
-
-const mapDataIntoFeed = (books: IBook[], reviewData: IFetchReview[][], users: IUser[]): IFeed[] => {
+const mapDataIntoFeed = (books: IBook[], reviewData:Record<string,IFetchReview[]>, users: IUser[]): IFeed[] => {
     let feeds: IFeed[] = [];
-    books.forEach((e: IBook) => {
-        let obj: IFeed;
-        const userInfo: IUser = filterUser(users, e.authId);
-        const review: IFetchReview[] = filterBookReviews(reviewData, e.id);
-        const reviews: IReview[] = filterReviewerInfo(review, users);
-        obj = {
-            userInfo,
-            bookInfo: e,
+
+    const userMap: Map<string, IUser> = new Map();
+    users.forEach((user: IUser) => {
+        user = { ...user, ...{ password: undefined } };
+        userMap.set(user.id, user);
+    });
+
+    books.forEach((book: IBook) => {
+        const userInfo: IUser = userMap.get(book.authId)!;
+        const reviewsArr: IFetchReview[] = reviewData[book.id];
+        const reviews: IReview[] = reviewsArr.map((review:IFetchReview) => {
+            let modifiedReview:IReview = { ...review, reviewerInfo: userMap.get(review.authId)! };
+            return modifiedReview;
+        })
+        feeds.push({ 
+            userInfo, 
+            bookInfo: book, 
             reviews
-        }
-        feeds.push(obj);
+        });
     })
     return feeds;
 }

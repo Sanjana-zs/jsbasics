@@ -33,7 +33,7 @@ const fetchBookReviews = (bookId: string): IReview[] | NotFoundError => {
     return review;
 }
 
-const fetchAllReviews = (bookId: string[], limit: number): IReview[] => {
+const fetchAllReviews = (bookId: string[], limit: number): Record<string, IReview[]> => {
     const mappedReviews = new Map();
     bookId.forEach(element => mappedReviews.set(element, []));
     reviewData.forEach((e: IReview) => {
@@ -43,8 +43,9 @@ const fetchAllReviews = (bookId: string[], limit: number): IReview[] => {
             mappedReviews.set(e.bookId, review);
         }
     });
-    const array = Array.from(mappedReviews.values());
-    return array;
+    const obj = Object.fromEntries(mappedReviews);;
+    console.log(obj);
+    return obj;
 }
 
 const updateRespectivereview = (reviewId: string, body: IReview, userId: string): void => {

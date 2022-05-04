@@ -1,12 +1,9 @@
 import Koa from 'koa';
 import json from 'koa-json';
-import dotenv from 'dotenv';
 import userRouter from './Routes/userRoute';
 import bookRouter from './Routes/bookRoute';
 import reviewRouter from './Routes/reviewRoute';
-dotenv.config();
 
-const port = process.env.PORT || 3000;
 const app = new Koa();
 app.use(json());
 
@@ -24,6 +21,4 @@ app.use(userRouter.routes()).use(userRouter.allowedMethods());
 app.use(bookRouter.routes()).use(bookRouter.allowedMethods());
 app.use(reviewRouter.routes()).use(reviewRouter.allowedMethods());
 
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-})
+export { app };
