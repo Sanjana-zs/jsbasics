@@ -15,7 +15,7 @@ interface IBook {
     id: string,
     title: string,
     description: string,
-    releaseDate: Date,
+    releaseDate: string,
     authId: string
 }
 
@@ -23,7 +23,7 @@ interface IReview {
     id: string,
     review: string,
     bookId: string,
-    createdAt: Date
+    createdAt: string
     reviewerInfo: IUser
 }
 
@@ -32,8 +32,7 @@ interface IFetchReview {
     review: string,
     authId: string,
     bookId: string,
-    createdAt: Date
+    createdAt: string
 }
-
 
 export { IFeed, IBook, IReview, IUser, IFetchReview };

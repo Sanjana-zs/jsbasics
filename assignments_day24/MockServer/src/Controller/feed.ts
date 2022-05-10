@@ -1,6 +1,6 @@
 import { Context } from "koa";
 import { IBook, IFeed, IFetchReview, IUser } from "../constants/interface";
-import { getBooks, getAllUsers, getUserInfo, getBookReviews, mapDataIntoFeed } from "../Services/feed";
+import { getBooks, getBookReviews, getUserInfo, getAllUsers, mapDataIntoFeed } from "../Services/feed";
 
 const showFeeds = async (ctx: Context) => {
     try {

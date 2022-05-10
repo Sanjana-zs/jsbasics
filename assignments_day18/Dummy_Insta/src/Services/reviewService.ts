@@ -43,8 +43,7 @@ const fetchAllReviews = (bookId: string[], limit: number): Record<string, IRevie
             mappedReviews.set(e.bookId, review);
         }
     });
-    const obj = Object.fromEntries(mappedReviews);;
-    console.log(obj);
+    const obj = Object.fromEntries(mappedReviews);
     return obj;
 }
 

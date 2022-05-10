@@ -1,120 +1,6 @@
 import request from 'supertest';
 import { app } from '../app';
 
-// testing for users
-describe("Test case for user api", (): void => {
-    let token: string = '';
-
-    describe("Test case for create user", (): void => {
-
-        it("If passing body is unappropriate", async (): Promise<void> => {
-            const response = await request(app.callback()).post('/user').send({
-                firstName: "Sanjana Sharma",
-                email: "sanjana@gmail.com",
-                password: "12345678"
-            });
-            expect(response.statusCode).toBe(406);
-        })
-
-        it("If the user is successfully created", async (): Promise<void> => {
-            const response = await request(app.callback()).post('/user').send({
-                userName: "Sanjana001",
-                fullName: "Sanjana",
-                email: "sanjana@gmail.com",
-                password: "12345678"
-            });
-            expect(response.statusCode).toBe(201);
-            expect(response.type).toBe("application/json");
-        })
-
-    })
-
-    describe("Test case for user login", (): void => {
-
-        it("If user enters wrong credentials", async (): Promise<void> => {
-            const response = await request(app.callback()).post('/user/login').send({
-                email: "sanjana@gmail.com",
-                password: "1234567823"
-            });
-            expect(response.statusCode).toBe(401);
-        })
-
-        it("If user is successfully logged in", async (): Promise<void> => {
-            const response = await request(app.callback()).post('/user/login').send({
-                email: "sanjana@gmail.com",
-                password: "12345678"
-            });
-            expect(response.statusCode).toBe(200);
-            expect(response.type).toBe("application/json");
-            token = JSON.parse(response.text).data.token;
-        })
-
-    })
-
-    describe("Test case for read user", (): void => {
-
-        it("If user is not logged in", async (): Promise<void> => {
-            const response = await request(app.callback()).get('/user/id');
-            expect(response.statusCode).toBe(401);
-        })
-
-        it("If user is logged in", async (): Promise<void> => {
-            const response = await request(app.callback()).get('/user/id').set("Authorization", `Bearer ${token}`);
-            expect(response.statusCode).toBe(200);
-        })
-
-    })
-
-    describe("Test case for update user", (): void => {
-
-        it("If user is not logged in", async (): Promise<void> => {
-            const response = await request(app.callback()).put('/user').send({
-                userName: 'Sanjana',
-                fullName: 'Sanjana',
-                email: 'sanjana@gmail.com',
-                password: '123456789'
-            });
-            expect(response.statusCode).toBe(401);
-        })
-
-        it("If user data is not appropriate", async (): Promise<void> => {
-            const response = await request(app.callback()).put('/user').set('Authorization', `Bearer ${token}`).send({
-                userName: 'Sanjana',
-                fullName: 'Sanjana',
-                email: 'sanjana@gmail.com',
-            });
-            expect(response.statusCode).toBe(406);
-        })
-
-        it("If user is successfullu updated", async (): Promise<void> => {
-            const response = await request(app.callback()).put('/user').set('Authorization', `Bearer ${token}`).send({
-                userName: 'Sanjana',
-                fullName: 'Sanjana',
-                email: 'sanjana@gmail.com',
-                password: '123456789'
-            });
-            expect(response.statusCode).toBe(201);
-        })
-
-    })
-
-    describe("Test case for delete user", (): void => {
-
-        it("If user is not logged in", async (): Promise<void> => {
-            const response = await request(app.callback()).delete('/user');
-            expect(response.statusCode).toBe(401);
-        })
-
-        it("If user is successfully deleted", async (): Promise<void> => {
-            const response = await request(app.callback()).delete('/user').set('Authorization', `Bearer ${token}`);
-            expect(response.statusCode).toBe(200);
-        })
-
-    })
-
-})
-
-
 // testing for books
 describe("Test case for book api", (): void => {
     let JWT_TOKEN: string = '';
@@ -132,12 +18,34 @@ describe("Test case for book api", (): void => {
                 "description": "Let's hope for the best!!!"
             })
             expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
+
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).post(`/book/`).set('Authorization',`Bearer ${JWT_TOKEN}`).send({
+                "title": "Book1",
+                "description": "Let's hope for the best!!!"
+            });
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
+        })
+
+        it("If token is not valid", async (): Promise<void> => {
+            const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhNjcxMDEyMC05ZDllLTQyYTUtOThiZS1hZWMyYjQ1ZTM1MDEiLCJpYXQiOjE2NTE1NjM1ODB9.5Wh8QgJTq-A-XkYDIfGY4cAet9JQFLbuvSzldIK3Uak';
+            const response = await request(app.callback()).post("/book").send({
+                "title": "Book1",
+                "description": "Let's hope for the best!!!"
+            }).set('Authorization', `Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("User doesn't exist");
         })
 
         it("If the title is not present", async (): Promise<void> => {
             const response = await request(app.callback()).post("/book").
                 set('Authorization', `Bearer ${JWT_TOKEN}`);
             expect(response.statusCode).toBe(406);
+            expect(JSON.parse(response.text).error).toStrictEqual(`\"title\" is required`);
         })
 
         it("Send response 201 if title is present", async (): Promise<void> => {
@@ -160,6 +68,14 @@ describe("Test case for book api", (): void => {
         it("If user is not logged in", async (): Promise<void> => {
             const response = await request(app.callback()).get(`/book`);
             expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
+
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).get(`/book`).set('Authorization',`Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
         })
 
         describe("Test case for user's books", (): void => {
@@ -168,6 +84,7 @@ describe("Test case for book api", (): void => {
                 const JWT_TOKEN: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhNjcxMDEyMC05ZDllLTQyYTUtOThiZS1hZWMyYjQ1ZTM1MDEiLCJpYXQiOjE2NTE1NjM1ODB9.5Wh8QgJTq-A-XkYDIfGY4cAet9JQFLbuvSzldIK3Uak';
                 const response = await request(app.callback()).get(`/book/user`).set('Authorization', `Bearer ${JWT_TOKEN}`);
                 expect(response.statusCode).toBe(401);
+                expect(JSON.parse(response.text).error).toStrictEqual("User doesn't exist");
             })
 
             it("show list of books w.r.t user", async (): Promise<void> => {
@@ -177,21 +94,90 @@ describe("Test case for book api", (): void => {
             })
 
         })
+    })
 
-        describe("Test case for getting book w.r.t id", (): void => {
+    describe("Test case for getting book w.r.t id", (): void => {
 
-            it("if book doesn't exist", async (): Promise<void> => {
-                const BOOK_ID: string = '6a9c0c5e-1471-4697-b393-66da26fcc47b';
-                const response = await request(app.callback()).get(`/book/${BOOK_ID}`).set('Authorization', `Bearer ${JWT_TOKEN}`);
-                expect(response.statusCode).toBe(404);
-            })
+        it("If user is not logged in", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book/${BOOK_ID}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
 
-            it("if book exists", async (): Promise<void> => {
-                const response = await request(app.callback()).get(`/book/${BOOK_ID}`).set('Authorization', `Bearer ${JWT_TOKEN}`)
-                expect(response.statusCode).toBe(200);
-                expect(response.type).toEqual('application/json');
-            })
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).get(`/book/${BOOK_ID}`).set('Authorization',`Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
+        })
 
+        it("if book doesn't exist", async (): Promise<void> => {
+            const BOOK_ID: string = '6a9c0c5e-1471-4697-b393-66da26fcc47b';
+            const response = await request(app.callback()).get(`/book/${BOOK_ID}`).set('Authorization', `Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(404);
+            expect(JSON.parse(response.text).error).toStrictEqual("Book doesn't exist");
+        })
+
+        it("if book exists", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book/${BOOK_ID}`).set('Authorization', `Bearer ${JWT_TOKEN}`)
+            expect(response.statusCode).toBe(200);
+            expect(response.type).toEqual('application/json');
+        })
+
+    })
+
+    describe("Test case for handling book query", (): void => {
+
+        it("If user is not logged in", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
+
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).get(`/book`).set('Authorization',`Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
+        })
+
+        it("If there doesn't exist any query", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book?query=`).set('Authorization', `Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(200);
+            expect(response.type).toBe('application/json');
+        })
+
+        it("If the query exists", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book?query=oo`).set('Authorization', `Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(200);
+            expect(response.type).toBe('application/json');
+        })
+
+    })
+
+    describe("Test case for list of books", (): void => {
+
+        it("If user is not logged in", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book/list`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
+
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).get(`/book/list`).set('Authorization',`Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
+        })
+        
+        it("If limits of book is not passed", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book/list`).set('Authorization', `Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(200);
+        })
+
+        it("If limits of book is passed", async (): Promise<void> => {
+            const response = await request(app.callback()).get(`/book/list?limit=12`).set('Authorization', `Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(200);
         })
 
     })
@@ -204,6 +190,18 @@ describe("Test case for book api", (): void => {
                 "description": "Let's hope for the best!!!"
             })
             expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
+
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).put(`/book/${BOOK_ID}`)
+                             .set('Authorization',`Bearer ${JWT_TOKEN}`).send({
+                                "title": "Book1",
+                                "description": "Let's hope for the best!!!"
+                            });
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
         })
 
         it("If book is not present", async (): Promise<void> => {
@@ -215,6 +213,7 @@ describe("Test case for book api", (): void => {
                     description: "Update Book"
                 });
             expect(response.statusCode).toBe(404);
+            expect(JSON.parse(response.text).error).toStrictEqual("Book doesn't exist");
         })
 
         it("If book is not authorized to user", async (): Promise<void> => {
@@ -225,12 +224,14 @@ describe("Test case for book api", (): void => {
                     description: "Update Book"
                 });
             expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("User doesn't exist");
         })
 
         it("If title is not present", async (): Promise<void> => {
             const response = await request(app.callback()).put(`/book/${BOOK_ID}`)
                 .set('Authorization', `Bearer ${JWT_TOKEN}`);
             expect(response.statusCode).toBe(406);
+            expect(JSON.parse(response.text).error).toStrictEqual(`\"title\" is required`);
         })
 
         it("If book is successfully updated", async (): Promise<void> => {
@@ -251,6 +252,15 @@ describe("Test case for book api", (): void => {
         it("If user is not logged in", async (): Promise<void> => {
             const response = await request(app.callback()).delete(`/book/${BOOK_ID}`);
             expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt must be provided");
+        })
+
+        it("If the passing token is invalid", async ():Promise<void> => {
+            const JWT_TOKEN = "softy23-gdtrcj123ksmjd-1jhdfgerg33";
+            const response = await request(app.callback()).delete(`/book/${BOOK_ID}`)
+                             .set('Authorization',`Bearer ${JWT_TOKEN}`);
+            expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("jwt malformed");
         })
 
         it("If book is not present", async (): Promise<void> => {
@@ -258,6 +268,7 @@ describe("Test case for book api", (): void => {
             const response = await request(app.callback()).delete(`/book/${BOOK_ID}`)
                 .set('Authorization', `Bearer ${JWT_TOKEN}`);
             expect(response.statusCode).toBe(404);
+            expect(JSON.parse(response.text).error).toStrictEqual("Book doesn't exist");
         })
 
         it("If book is not authorized to user", async (): Promise<void> => {
@@ -265,6 +276,7 @@ describe("Test case for book api", (): void => {
             const response = await request(app.callback()).delete(`/book/${BOOK_ID}`)
                 .set('Authorization', `Bearer ${JWT_TOKEN}`);
             expect(response.statusCode).toBe(401);
+            expect(JSON.parse(response.text).error).toStrictEqual("Unauthorized");
         })
 
         it("If book is successfully deleted", async (): Promise<void> => {
